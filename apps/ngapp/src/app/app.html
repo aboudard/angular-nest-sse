@@ -1,0 +1,9 @@
+<h1>{{ title() }}</h1>
+<div>
+  <p>Name: {{ user.value()?.name }}</p>
+  <p>Email: {{ user.value()?.email }}</p>
+</div>
+<h1>Flux Server-Sent Events (SSE)</h1>
+<p>Dernier message reçu : <strong>{{ message() }}</strong></p>
+<button type="button" (click)="closeSse()">Fermer le flux SSE</button>
+<router-outlet></router-outlet>

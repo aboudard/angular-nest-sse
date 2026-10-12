@@ -1,91 +1,63 @@
-# NgNestSse
+# ng-nest-sse
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+An Nx workspace containing a NestJS API, an Angular application, and a shared TypeScript library.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Workspace Setup
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Generate a library
+The initial workspace was created from the Nx TypeScript preset with package workspace linking disabled:
 
 ```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+npx create-nx-workspace@latest ng-nest-sse --preset=ts --workspaces=false
 ```
 
-## Run tasks
+Nx manages the projects in the repository. The `datatypes` library is imported by the applications through a TypeScript path alias, not through npm workspace or project package linking. The `tsconfig.base.json` shows that package linking is disabled because the following property is not set :
 
-To build the library use:
+```json
+"composite": true
+```
+
+Instead, the `paths` property is used to resolve the `@ng-nest-sse/datatypes` alias to the library's source code:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@ng-nest-sse/datatypes": ["packages/datatypes/src/index.ts"]
+    }
+  }
+}
+```
+
+## Components
+
+- **API (`apps/api`)**: A NestJS backend that listens on port `3000`. It exposes the user endpoint at `/api/user` and an SSE stream at `/api/sse/stream`.
+- **Angular app (`apps/ngapp`)**: The browser frontend. It fetches user data from `/api/user` and connects to the SSE stream. During development, its proxy forwards `/api` requests to the API on port `3000`.
+- **Datatypes library (`packages/datatypes`)**: Shared TypeScript types used by the API and Angular app, including the `User` type. It is resolved through the `@ng-nest-sse/datatypes` TypeScript path alias.
+
+## Run Locally
+
+Install dependencies from the workspace root, then start each project in a separate terminal:
 
 ```sh
-npx nx build pkg1
+npm install
+npx nx serve api
 ```
-
-To run any task with Nx use:
 
 ```sh
-npx nx <target> <project-name>
+npx nx serve ngapp
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+The API listens on `http://localhost:3000`. Nx serves the Angular app on its development-server port (normally `http://localhost:4200`). The Angular development proxy routes API requests to the backend.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Project Tags and Linting
 
-## Versioning and releasing
+Nx project tags describe each project's role and are used by the `@nx/enforce-module-boundaries` ESLint rule:
 
-To version and release the library use
+- `type:app` marks the `api` and `ngapp` applications. Applications may depend on libraries tagged `type:shared`.
+- `type:shared` marks the `datatypes` library. Shared libraries may depend only on other shared libraries.
 
-```
-npx nx release
-```
-
-Pass `--dry-run` to see what would happen without actually releasing the library.
-
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
+Run lint across all projects with:
 
 ```sh
-npx nx connect
+npx nx run-many -t lint
 ```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
